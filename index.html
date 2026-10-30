@@ -43,7 +43,7 @@ table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{padding:7px;bord
 <div class="bar" id="bar"><button id="sum" aria-expanded="false"></button><div class="in">
 <div><label>Kolik peněz</label><div class="seg" id="amt"><button data-v="500000">500 tis.</button><button data-v="1000000" class="on">1 mil.</button><button data-v="1500000">1,5 mil.</button></div></div>
 <div><label>Sazba hypotéky (banka / fixace)</label><select id="rate"></select></div>
-<div><label>Zahrnout ETF</label><div class="seg" id="etfOn"><button data-v="1" class="on">ANO</button><button data-v="0">NE</button></div></div>
+<div><label>Zahrnout ETF</label><div class="seg" id="etfOn"><button data-v="1">ANO</button><button data-v="0" class="on">NE</button></div></div>
 <div id="etfBox"><label>Výnos ETF: <span id="etfL"></span></label><input type="range" id="etf" min="3" max="10" step="0.5" value="7"></div>
 </div></div>
 <main>
@@ -109,7 +109,7 @@ const sel=$("rate");BANKS.forEach((b,bi)=>[1,3,5].forEach((y,j)=>{if(b[j+1]!=nul
 const tb=$("banks");BANKS.forEach((b,bi)=>{const tr=document.createElement("tr");tr.innerHTML=`<td>${b[0]}</td>`+[0,1,2].map(j=>b[j+1]==null?"<td>–</td>":`<td data-r="${bi}_${j}">${b[j+1].toFixed(2).replace(".",",")} %</td>`).join("")+`<td class="note">${b[4]}</td>`;tb.appendChild(tr)});
 tb.addEventListener("click",e=>{const r=e.target.dataset.r;if(r){sel.value=r;upd();window.scrollTo({top:0,behavior:"smooth"})}});
 let X=1000000;document.querySelectorAll("#amt button").forEach(b=>b.onclick=()=>{X=+b.dataset.v;document.querySelectorAll("#amt button").forEach(x=>x.classList.toggle("on",x===b));upd()});
-let ETF=1;document.querySelectorAll("#etfOn button").forEach(b=>b.onclick=()=>{ETF=+b.dataset.v;document.querySelectorAll("#etfOn button").forEach(x=>x.classList.toggle("on",x===b));upd()});
+let ETF=0;document.querySelectorAll("#etfOn button").forEach(b=>b.onclick=()=>{ETF=+b.dataset.v;document.querySelectorAll("#etfOn button").forEach(x=>x.classList.toggle("on",x===b));upd()});
 $("sum").onclick=()=>{const o=$("bar").classList.toggle("open");$("sum").setAttribute("aria-expanded",o)};
 let bars,line;
 function upd(){const [bi,j]=sel.value.split("_").map(Number),r=BANKS[bi][j+1],etf=+$("etf").value;$("etfL").textContent=etf.toLocaleString("cs-CZ")+" %";
