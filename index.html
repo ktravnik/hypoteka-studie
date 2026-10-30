@@ -5,10 +5,13 @@
 :root{--ink:#111827;--mut:#6b7280;--ok:#15803d;--bad:#b91c1c;--pri:#2563eb}
 *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f3f5f9;color:var(--ink);line-height:1.45}
 main{max-width:1000px;margin:auto;padding:12px}
-.bar{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid #e5e7eb;padding:10px 12px;display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;justify-content:center;font-size:.9rem}
-.bar label{font-weight:700;display:block;font-size:.78rem;color:var(--mut);text-transform:uppercase;letter-spacing:.03em}
-.seg{display:flex}.seg button{border:1px solid #cbd5e1;background:#fff;padding:6px 11px;cursor:pointer;font-weight:700;font-size:.9rem}.seg button+button{border-left:0}.seg button:first-child{border-radius:8px 0 0 8px}.seg button:last-child{border-radius:0 8px 8px 0}.seg button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
-select{padding:6px;border-radius:8px;border:1px solid #cbd5e1;font-size:.9rem;max-width:260px}input[type=range]{accent-color:var(--pri);width:140px;vertical-align:middle}
+.bar{position:sticky;top:0;z-index:5;background:#0f172a;color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.bar .in{max-width:1000px;margin:auto;padding:12px;display:flex;flex-wrap:wrap;gap:12px 26px;align-items:flex-end;justify-content:center}
+.bar label{font-weight:800;display:block;font-size:.85rem;color:#fbbf24;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.seg{display:flex}.seg button{border:2px solid #475569;background:#1e293b;color:#e2e8f0;padding:9px 15px;cursor:pointer;font-weight:800;font-size:1.05rem}.seg button+button{border-left:0}.seg button:first-child{border-radius:10px 0 0 10px}.seg button:last-child{border-radius:0 10px 10px 0}.seg button.on{background:#fbbf24;color:#0f172a;border-color:#fbbf24}
+select{padding:9px;border-radius:10px;border:2px solid #475569;background:#1e293b;color:#fff;font-size:1.05rem;font-weight:700;max-width:300px}input[type=range]{accent-color:#fbbf24;width:170px;height:26px;vertical-align:middle}
+#sum{display:none;width:100%;background:none;border:0;color:#fff;font-weight:800;font-size:1rem;padding:11px 12px;text-align:left;cursor:pointer}#sum b{color:#fbbf24}
+@media(max-width:700px){#sum{display:block}.bar .in{display:none;padding-top:0}.bar.open .in{display:flex}.bar .in>div{width:100%}select{max-width:100%;width:100%}input[type=range]{width:100%}.seg button{flex:1}}
 .verdict{background:linear-gradient(135deg,#14532d,#15803d);color:#fff;border-radius:18px;padding:22px;margin:14px 0;text-align:center}
 .verdict small{opacity:.85;text-transform:uppercase;letter-spacing:.08em;font-weight:700}.verdict h1{margin:6px 0;font-size:2rem}.verdict .big{font-size:1.15rem}.verdict p{margin:8px auto 0;max-width:720px;opacity:.95}
 .basis{font-size:.85rem;color:var(--mut);text-align:center;margin:-4px 0 12px}
@@ -25,11 +28,12 @@ table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{padding:7px;bord
 .rec{border-left:4px solid var(--ok);background:#f0fdf4;padding:12px;border-radius:8px}
 @media(max-width:600px){.verdict h1{font-size:1.5rem}.num{font-size:1.5rem}}
 </style></head><body>
-<div class="bar">
+<div class="bar" id="bar"><button id="sum" aria-expanded="false"></button><div class="in">
 <div><label>Kolik peněz</label><div class="seg" id="amt"><button data-v="500000">500 tis.</button><button data-v="1000000" class="on">1 mil.</button><button data-v="1500000">1,5 mil.</button></div></div>
 <div><label>Sazba hypotéky (banka / fixace)</label><select id="rate"></select></div>
-<div><label>Výnos ETF: <span id="etfL"></span></label><input type="range" id="etf" min="3" max="10" step="0.5" value="7"></div>
-</div>
+<div><label>Zahrnout ETF</label><div class="seg" id="etfOn"><button data-v="1" class="on">ANO</button><button data-v="0">NE</button></div></div>
+<div id="etfBox"><label>Výnos ETF: <span id="etfL"></span></label><input type="range" id="etf" min="3" max="10" step="0.5" value="7"></div>
+</div></div>
 <main>
 <section class="verdict"><small>Nejvíc vydělá</small><h1 id="vW"></h1><div class="big" id="vBy"></div><p id="vTxt"></p></section>
 <p class="basis"><b>Společné měřítko:</b> o kolik budou rodiče v červenci 2039 bohatší (majetek − dluh) než kdyby peníze jen ležely bez úroku. Všude stejný měsíční rozpočet = dnešní splátka; co se ušetří na splátkách, jde na spořicí účet 2,8 % čistě. Sazba po fixaci beze změny.</p>
@@ -80,6 +84,8 @@ const sel=$("rate");BANKS.forEach((b,bi)=>[1,3,5].forEach((y,j)=>{if(b[j+1]!=nul
 const tb=$("banks");BANKS.forEach((b,bi)=>{const tr=document.createElement("tr");tr.innerHTML=`<td>${b[0]}</td>`+[0,1,2].map(j=>b[j+1]==null?"<td>–</td>":`<td data-r="${bi}_${j}">${b[j+1].toFixed(2).replace(".",",")} %</td>`).join("")+`<td class="note">${b[4]}</td>`;tb.appendChild(tr)});
 tb.addEventListener("click",e=>{const r=e.target.dataset.r;if(r){sel.value=r;upd();window.scrollTo({top:0,behavior:"smooth"})}});
 let X=1000000;document.querySelectorAll("#amt button").forEach(b=>b.onclick=()=>{X=+b.dataset.v;document.querySelectorAll("#amt button").forEach(x=>x.classList.toggle("on",x===b));upd()});
+let ETF=1;document.querySelectorAll("#etfOn button").forEach(b=>b.onclick=()=>{ETF=+b.dataset.v;document.querySelectorAll("#etfOn button").forEach(x=>x.classList.toggle("on",x===b));upd()});
+$("sum").onclick=()=>{const o=$("bar").classList.toggle("open");$("sum").setAttribute("aria-expanded",o)};
 let bars,line;
 function upd(){const [bi,j]=sel.value.split("_").map(Number),r=BANKS[bi][j+1],etf=+$("etf").value;$("etfL").textContent=etf.toLocaleString("cs-CZ")+" %";
  const {res,s,bp,p1}=sim(r,X,etf),g=k=>s[k][N-1]-X;
@@ -87,17 +93,17 @@ function upd(){const [bi,j]=sel.value.split("_").map(Number),r=BANKS[bi][j+1],et
  const V=[{k:"A1",n:"A1 · Splatit, nižší splátka",g:g("A1"),t:`Splátka klesne z ${f(bp)} na <b>${f(p1)}</b>. Ušetřeno na úrocích ${f(res.base.I-res.A1.I)}; rozdíl ve splátce se spoří.`,lo:1},
  {k:"A2",n:"A2 · Splatit, kratší doba",g:g("A2"),t:`Stejná splátka, doplaceno už <b>${mon(res.A2.m)}</b>. Ušetřeno na úrocích ${f(res.base.I-res.A2.I)}; pak se celá splátka spoří.`,lo:1},
  {k:"B",n:"B · Spořicí účet 2,8 %",g:g("B"),t:`Hypotéka beze změny (${r.toFixed(2).replace(".",",")} %), peníze na spořáku. Úrok hypotéky je vyšší než výnos spořáku.`,lo:1},
- {k:"C",n:`C · ETF ${etf.toLocaleString("cs-CZ")} % ročně`,g:g("C"),t:`Hypotéka beze změny, peníze v ETF. Při nejhorším rozumném výnosu 3 % jen <b>${f(etf3)}</b>.`,lo:0}].sort((a,b)=>b.g-a.g);
+ {k:"C",n:`C · ETF ${etf.toLocaleString("cs-CZ")} % ročně`,g:g("C"),t:`Hypotéka beze změny, peníze v ETF. Při nejhorším rozumném výnosu 3 % jen <b>${f(etf3)}</b>.`,lo:0}].filter(v=>ETF||v.k!="C").sort((a,b)=>b.g-a.g);const L=V[V.length-1];
  const w=V[0];$("vW").textContent=w.n;
- $("vBy").innerHTML=`Zisk <b>${f(w.g)}</b> do 2039 · o ${f(w.g-V[1].g)} víc než ${V[1].k}, o ${f(w.g-V[3].g)} víc než ${V[3].k}`;
+ $("vBy").innerHTML=`Zisk <b>${f(w.g)}</b> do 2039 · o ${f(w.g-V[1].g)} víc než ${V[1].k}, o ${f(w.g-L.g)} víc než ${L.k}`;
  const safe=V.find(v=>v.lo);
  $("vTxt").innerHTML=w.lo?`Jistá úspora bez tržního rizika – mimořádná splátka „vydělává“ ${r.toFixed(2).replace(".",",")} % ročně, což spořicí účet nedá.`:`ETF vyhrává jen pokud vydrží průměrný výnos ${etf} % a rodiče ustojí propad 30–50 %. Nejlepší <u>bezriziková</u> volba je ${safe.n} (${f(safe.g)}), tedy o ${f(w.g-safe.g)} méně – to je cena za klid.`;
  $("cards").innerHTML=V.map((v,i)=>`<div class="card ${i?"":"win"}"><span class="rank">#${i+1}</span><h3>${v.n}</h3><div class="num">+${f(v.g)}</div><div class="sub">čistý zisk do 2039 <span class="badge c">VYPOČTENO</span></div><p class="sub" style="color:#374151">${v.t}</p><span class="risk ${v.lo?"lo":"hi"}">${v.lo?"✓ nízké riziko":"⚠ riziko: propad 30–50 %"}</span></div>`).join("");
- $("riskNote").innerHTML=`⚠️ <b>Riziko ETF:</b> zisk ${f(g("C"))} platí při ${etf} % ročně. Při 3 % jen ${f(etf3)} (${etf3<g("A2")?"méně než A2":"stále víc než A2"}); při propadu 30–50 % těsně před potřebou peněz může být výsledek i záporný.`;
+ $("etfBox").style.display=ETF?"":"none";$("riskNote").style.display=ETF?"":"none";$("sum").innerHTML=`⚙️ <b>${(X/1e6).toLocaleString("cs-CZ")} mil.</b> · ${BANKS[bi][0].split(" ")[0]} <b>${r.toFixed(2).replace(".",",")} %</b> · ETF <b>${ETF?etf.toLocaleString("cs-CZ")+" %":"NE"}</b> ▾`;$("riskNote").innerHTML=`⚠️ <b>Riziko ETF:</b> zisk ${f(g("C"))} platí při ${etf} % ročně. Při 3 % jen ${f(etf3)} (${etf3<g("A2")?"méně než A2":"stále víc než A2"}); při propadu 30–50 % těsně před potřebou peněz může být výsledek i záporný.`;
  const cols=V.map(v=>v.lo?"#15803d":"#dc2626");
  const bd={labels:V.map(v=>v.k),datasets:[{data:V.map(v=>Math.round(v.g)),backgroundColor:cols,borderRadius:6}]};
  if(bars){bars.data=bd;bars.update()}else bars=new Chart($("bars"),{type:"bar",data:bd,options:{indexAxis:"y",maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>f(c.parsed.x)}}},scales:{x:{ticks:{callback:v=>(v/1e6).toLocaleString("cs-CZ")+" mil."}}}}});
- const ds=[["A1","#16a34a"],["A2","#2563eb"],["B","#d97706"],["C","#dc2626"]].map(([k,c])=>({label:k,data:s[k],borderColor:c,backgroundColor:c,pointRadius:0,borderWidth:2}));ds.push({label:"Nic nedělat",data:Array(N).fill(X),borderColor:"#9ca3af",borderDash:[5,5],pointRadius:0,borderWidth:1.5});
+ const ds=[["A1","#16a34a"],["A2","#2563eb"],["B","#d97706"],["C","#dc2626"]].filter(([k])=>ETF||k!="C").map(([k,c])=>({label:k,data:s[k],borderColor:c,backgroundColor:c,pointRadius:0,borderWidth:2}));ds.push({label:"Nic nedělat",data:Array(N).fill(X),borderColor:"#9ca3af",borderDash:[5,5],pointRadius:0,borderWidth:1.5});
  const labels=Array.from({length:N},(_,k)=>mon(k+1));
  if(line){line.data.datasets=ds;line.update()}else line=new Chart($("ch"),{type:"line",data:{labels,datasets:ds},options:{maintainAspectRatio:false,interaction:{mode:"index",intersect:false},scales:{y:{ticks:{callback:v=>(v/1e6).toLocaleString("cs-CZ")+" mil."}},x:{ticks:{maxTicksLimit:10}}},plugins:{tooltip:{callbacks:{label:c=>c.dataset.label+": "+f(c.parsed.y)}}}}});
  $("taxL").textContent=f(0.15*X*r/100);$("calcP").textContent=f(bp)+" při "+r.toFixed(2).replace(".",",")+" % (banka může uvádět o pár Kč méně)";
