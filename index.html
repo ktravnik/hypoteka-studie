@@ -33,6 +33,11 @@ table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{padding:7px;bord
 .opt .row{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px dashed #e5e7eb;font-size:.95rem}.opt .tot{font-size:1.4rem;font-weight:800;margin-top:8px}
 .rates{display:grid;gap:12px;grid-template-columns:1fr 1fr;margin-top:12px}@media(max-width:700px){.rates{grid-template-columns:1fr}}
 .rbox{border:1px solid #e5e7eb;border-radius:12px;padding:12px}.rbox h4{margin:0 0 8px}.rb{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:.9rem}.rb span:first-child{width:92px}.rb i{display:block;height:22px;border-radius:5px}.rb b{white-space:nowrap}
+.pay{background:#fff;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 1px 4px rgba(0,0,0,.1);border-top:6px solid #15803d}.pay h2{margin:0 0 8px;font-size:1.4rem}
+.yield{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:1.05rem;background:#f0fdf4;border-radius:10px;padding:12px}.yield b.g{color:var(--ok);font-size:1.3rem}
+.free{display:grid;gap:12px;grid-template-columns:1fr 1fr;margin:12px 0}@media(max-width:700px){.free{grid-template-columns:1fr}}
+.fbox{border:2px solid #86efac;border-radius:14px;padding:14px;background:#fff}.fbox small{font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}.fbox .huge{font-size:2rem;font-weight:800;color:var(--ok);margin:4px 0}
+.charts2{display:grid;gap:12px;grid-template-columns:1fr 1fr}@media(max-width:700px){.charts2{grid-template-columns:1fr}}.charts2>div{position:relative;height:260px}
 @media(max-width:600px){.verdict h1{font-size:1.5rem}.num{font-size:1.5rem}}
 </style></head><body>
 <div class="bar" id="bar"><button id="sum" aria-expanded="false"></button><div class="in">
@@ -49,6 +54,12 @@ table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{padding:7px;bord
 <div class="sbs" style="margin-top:12px"><div class="opt no"><h3>❌ NESPLATIT (peníze na spořáku)</h3><div id="wNo"></div></div><div class="opt yes"><h3>✅ SPLATIT 18. 6. 2027</h3><div id="wYes"></div></div></div>
 <p class="note" style="margin-top:10px">📅 <b>Výročí fixace 18. 6. 2027 je jediný okamžik, kdy lze mimořádně splatit bez poplatku.</b> Mimo výročí obvykle banka účtuje poplatek za předčasné splacení (dle zákona o spotřebitelském úvěru max. 1 % splacené částky, skutečné náklady banky) <span class="badge u">NEOVĚŘENO pro tuto smlouvu – obecné pravidlo</span>.</p></section>
 <section class="verdict"><small>Nejvíc vydělá</small><h1 id="vW"></h1><div class="big" id="vBy"></div><p id="vTxt"></p></section>
+<section class="pay"><h2>Proč se vyplácí splátka</h2>
+<div class="yield" id="pYield"></div>
+<div class="free"><div class="fbox"><small>A1 · uvolněné peníze měsíčně – hned</small><div class="huge" id="pA1"></div><div class="sub" id="pA1t"></div></div>
+<div class="fbox"><small>A2 · uvolněné peníze měsíčně – po doplacení</small><div class="huge" id="pA2"></div><div class="sub" id="pA2t"></div></div></div>
+<div class="charts2"><div><canvas id="chPay"></canvas></div><div><canvas id="chDebt"></canvas></div></div>
+<p class="warn" style="margin-top:12px">⚠️ <b>Nevýhoda:</b> splacené peníze už nejsou rezerva – z hypotéky je zpátky nedostanete. Proto <b>nesplácejte všechno</b> a nechte si na spořáku rezervu aspoň na 6 měsíců výdajů.</p></section>
 <p class="basis"><b>Společné měřítko:</b> o kolik budou rodiče v červenci 2039 bohatší (majetek − dluh) než kdyby peníze jen ležely bez úroku. Všude stejný měsíční rozpočet = dnešní splátka; co se ušetří na splátkách, jde na spořicí účet 2,8 % čistě. Sazba po fixaci beze změny.</p>
 <div class="cards" id="cards"></div>
 <section class="panel"><h2>Zisk / úspora do 2039 podle varianty <span class="badge c">VYPOČTENO</span></h2><div style="position:relative;height:260px"><canvas id="bars"></canvas></div>
@@ -129,6 +140,19 @@ function upd(){const [bi,j]=sel.value.split("_").map(Number),r=BANKS[bi][j+1],et
  $("wNo").innerHTML=row("Úroky bance z této částky do 2039",f(iBank))+row("Úroky ze spořáku do 2039 (čistě)",f(iSav))+row("1. rok: úrok bance / výnos spořáku",f(yBank)+" / "+f(ySav))+`<div class="tot" style="color:var(--bad)">−${f(iBank-iSav)}</div><div class="sub">bance zaplatíte víc, než spořák vydělá</div>`;
  $("wYes").innerHTML=row("A2 – stejná splátka, doplaceno "+mon(res.A2.m),"ušetří "+f(iBank))+row("A1 – stejná doba, splátka "+f(p1),"ušetří "+f(res.base.I-res.A1.I))+row("Rozdíl jmění 2039: A2 vs. spořák","+"+f(dFull))+`<div class="tot" style="color:var(--ok)">+${f(dFull)}</div><div class="sub">o tolik budete v 2039 bohatší než při NESPLATIT (vč. spoření uvolněné splátky)</div>`;
  window.__W={yLoss:Math.round(yLoss),mLoss:Math.round(yLoss/12),iBank:Math.round(iBank),iSav:Math.round(iSav),diff:Math.round(iBank-iSav),dFull:Math.round(dFull),a1:Math.round(res.base.I-res.A1.I)};
+ {const pc=x=>x.toFixed(2).replace(".",",")+" %";
+ $("pYield").innerHTML=`Mimořádná splátka = <b class="g">jistý výnos ${pc(r)}</b> ročně, <b>bez daně a bez rizika</b> <span style="color:var(--mut)">vs.</span> spořák <b>2,8 %</b> čistě (3,3 % hrubě − 15 % daň).`;
+ const free1=bp-p1,mLeft=N-res.A2.m,tot2=mLeft*bp;
+ $("pA1").textContent="+"+f(free1);$("pA1t").innerHTML=`Splátka klesne z <b>${f(bp)}</b> na <b>${f(p1)}</b> od 7/2027, splatnost zůstává 7/2039. Za celou dobu ${f(free1*N)}.`;
+ $("pA2").textContent="+"+f(bp);$("pA2t").innerHTML=`Do ${mon(res.A2.m)} platíte stejně, pak <b>${mLeft} měsíců</b> (do 7/2039) bez splátky = celkem <b>${f(tot2)}</b> volných peněz.`;
+ const pays={Bez:[],A1:[],A2:[]},debt={Bez:[],A1:[],A2:[]},i=r/1200;let d0=P0,d1=P0-X,d2=P0-X;
+ for(let k=0;k<N;k++){pays.Bez.push(bp);pays.A1.push(p1);const p2=d2>0.5?Math.min(bp,d2*(1+i)):0;pays.A2.push(p2);
+  d0=Math.max(0,d0*(1+i)-bp);d1=Math.max(0,d1*(1+i)-p1);d2=Math.max(0,d2*(1+i)-p2);debt.Bez.push(d0);debt.A1.push(d1);debt.A2.push(d2)}
+ const lb=Array.from({length:N},(_,k)=>mon(k+1)),C3=[["Bez splátky","Bez","#6b7280"],["A1","A1","#16a34a"],["A2","A2","#2563eb"]];
+ const mk=(id,src,t)=>{const ds=C3.map(([l,k,c])=>({label:l,data:src[k],borderColor:c,backgroundColor:c,pointRadius:0,borderWidth:2.5,stepped:id=="chPay"}));const ch=Chart.getChart(id);if(ch){ch.data.datasets=ds;ch.update();return}
+  new Chart($(id),{type:"line",data:{labels:lb,datasets:ds},options:{maintainAspectRatio:false,interaction:{mode:"index",intersect:false},plugins:{title:{display:true,text:t},tooltip:{callbacks:{label:c=>c.dataset.label+": "+f(c.parsed.y)}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v>=1e6?(v/1e6).toLocaleString("cs-CZ")+" mil.":(v/1e3)+" tis."}},x:{ticks:{maxTicksLimit:7}}}}})};
+ mk("chPay",pays,"Měsíční splátka");mk("chDebt",debt,"Zbývající dluh");
+ window.__P={bp:Math.round(bp),p1:Math.round(p1),free1:Math.round(free1),a2end:mon(res.A2.m),mLeft,tot2:Math.round(tot2)};}
  window.__V=V.map(v=>[v.k,Math.round(v.g)]);}
 $("etf").addEventListener("input",upd);sel.addEventListener("change",upd);upd();
 </script></body></html>
