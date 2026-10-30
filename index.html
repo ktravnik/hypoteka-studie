@@ -26,6 +26,13 @@ select{padding:9px;border-radius:10px;border:2px solid #475569;background:#1e293
 details{background:#fff;border-radius:14px;margin:10px 0;box-shadow:0 1px 3px rgba(0,0,0,.08)}summary{cursor:pointer;padding:14px 16px;font-weight:700}details>div{padding:0 16px 16px}
 table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{padding:7px;border-bottom:1px solid #eef0f4;text-align:right}th:first-child,td:first-child,td:last-child{text-align:left}td[data-r]{cursor:pointer}td[data-r]:hover{background:#e0e7ff}.tw{overflow-x:auto}.note{color:var(--mut);font-size:.85rem}
 .rec{border-left:4px solid var(--ok);background:#f0fdf4;padding:12px;border-radius:8px}
+.why{background:#fff;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 1px 4px rgba(0,0,0,.1);border-top:6px solid #fbbf24}.why h2{margin:0 0 4px;font-size:1.5rem}
+.lead{font-size:1.08rem;background:#fffbeb;border-radius:10px;padding:12px;margin:10px 0}
+.sbs{display:grid;gap:12px;grid-template-columns:1fr 1fr}@media(max-width:700px){.sbs{grid-template-columns:1fr}}
+.opt{border-radius:14px;padding:14px}.opt h3{margin:0 0 6px;font-size:1.15rem}.no{background:#fef2f2;border:2px solid #fca5a5}.yes{background:#f0fdf4;border:2px solid #86efac}
+.opt .row{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px dashed #e5e7eb;font-size:.95rem}.opt .tot{font-size:1.4rem;font-weight:800;margin-top:8px}
+.rates{display:grid;gap:12px;grid-template-columns:1fr 1fr;margin-top:12px}@media(max-width:700px){.rates{grid-template-columns:1fr}}
+.rbox{border:1px solid #e5e7eb;border-radius:12px;padding:12px}.rbox h4{margin:0 0 8px}.rb{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:.9rem}.rb span:first-child{width:92px}.rb i{display:block;height:22px;border-radius:5px}.rb b{white-space:nowrap}
 @media(max-width:600px){.verdict h1{font-size:1.5rem}.num{font-size:1.5rem}}
 </style></head><body>
 <div class="bar" id="bar"><button id="sum" aria-expanded="false"></button><div class="in">
@@ -35,6 +42,12 @@ table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{padding:7px;bord
 <div id="etfBox"><label>Výnos ETF: <span id="etfL"></span></label><input type="range" id="etf" min="3" max="10" step="0.5" value="7"></div>
 </div></div>
 <main>
+<section class="why"><h2>Proč splatit právě teď?</h2>
+<p class="lead" id="wLead"></p>
+<div class="rates"><div class="rbox"><h4>Do 6/2027: sazba 2 % <span class="badge u">NEOVĚŘENO</span></h4><div id="rBefore"></div><p class="note" style="margin:6px 0 0">Spořák vydělal víc, než stála hypotéka → <b>nesplácet dávalo smysl.</b></p></div>
+<div class="rbox"><h4>Od 18. 6. 2027: sazba <span id="rNow"></span> <span class="badge v">OVĚŘENO</span></h4><div id="rAfter"></div><p class="note" style="margin:6px 0 0">Hypotéka stojí víc, než spořák vydělá → <b>splatit vyhrává.</b></p></div></div>
+<div class="sbs" style="margin-top:12px"><div class="opt no"><h3>❌ NESPLATIT (peníze na spořáku)</h3><div id="wNo"></div></div><div class="opt yes"><h3>✅ SPLATIT 18. 6. 2027</h3><div id="wYes"></div></div></div>
+<p class="note" style="margin-top:10px">📅 <b>Výročí fixace 18. 6. 2027 je jediný okamžik, kdy lze mimořádně splatit bez poplatku.</b> Mimo výročí obvykle banka účtuje poplatek za předčasné splacení (dle zákona o spotřebitelském úvěru max. 1 % splacené částky, skutečné náklady banky) <span class="badge u">NEOVĚŘENO pro tuto smlouvu – obecné pravidlo</span>.</p></section>
 <section class="verdict"><small>Nejvíc vydělá</small><h1 id="vW"></h1><div class="big" id="vBy"></div><p id="vTxt"></p></section>
 <p class="basis"><b>Společné měřítko:</b> o kolik budou rodiče v červenci 2039 bohatší (majetek − dluh) než kdyby peníze jen ležely bez úroku. Všude stejný měsíční rozpočet = dnešní splátka; co se ušetří na splátkách, jde na spořicí účet 2,8 % čistě. Sazba po fixaci beze změny.</p>
 <div class="cards" id="cards"></div>
@@ -107,6 +120,15 @@ function upd(){const [bi,j]=sel.value.split("_").map(Number),r=BANKS[bi][j+1],et
  const labels=Array.from({length:N},(_,k)=>mon(k+1));
  if(line){line.data.datasets=ds;line.update()}else line=new Chart($("ch"),{type:"line",data:{labels,datasets:ds},options:{maintainAspectRatio:false,interaction:{mode:"index",intersect:false},scales:{y:{ticks:{callback:v=>(v/1e6).toLocaleString("cs-CZ")+" mil."}},x:{ticks:{maxTicksLimit:10}}},plugins:{tooltip:{callbacks:{label:c=>c.dataset.label+": "+f(c.parsed.y)}}}}});
  $("taxL").textContent=f(0.15*X*r/100);$("calcP").textContent=f(bp)+" při "+r.toFixed(2).replace(".",",")+" % (banka může uvádět o pár Kč méně)";
+ const pc=x=>x.toFixed(2).replace(".",",")+" %",nm=(X/1e6).toLocaleString("cs-CZ")+(X==1e6?" milion":" mil.");
+ const yBank=X*r/100,ySav=X*0.028,yLoss=yBank-ySav,iBank=res.base.I-res.A2.I,iSav=g("B"),dFull=g("A2")-g("B");
+ $("wLead").innerHTML=`Dokud byla sazba 2 %, vyplatilo se mít peníze na spořáku. Od 6/2027 hypotéka stojí <b>${pc(r)}</b>, spořák vydělá jen <b>2,8 %</b> → každých ${nm} nechaných na účtu vás stojí cca <b>${f(yLoss)} ročně</b> (${f(yLoss/12)} měsíčně), tj. ztráta ${pc(r-2.8)} ročně.`;
+ const mx=Math.max(r,3.3),bar=(l,v,c)=>`<div class="rb"><span>${l}</span><i style="width:${v/mx*60}%;background:${c}"></i><b>${pc(v)}</b></div>`;
+ $("rBefore").innerHTML=bar("Hypotéka",2,"#16a34a")+bar("Spořák čistě",2.8,"#2563eb");$("rAfter").innerHTML=bar("Hypotéka",r,"#dc2626")+bar("Spořák čistě",2.8,"#2563eb");$("rNow").textContent=pc(r);
+ const row=(a,b)=>`<div class="row"><span>${a}</span><b>${b}</b></div>`;
+ $("wNo").innerHTML=row("Úroky bance z této částky do 2039",f(iBank))+row("Úroky ze spořáku do 2039 (čistě)",f(iSav))+row("1. rok: úrok bance / výnos spořáku",f(yBank)+" / "+f(ySav))+`<div class="tot" style="color:var(--bad)">−${f(iBank-iSav)}</div><div class="sub">bance zaplatíte víc, než spořák vydělá</div>`;
+ $("wYes").innerHTML=row("A2 – stejná splátka, doplaceno "+mon(res.A2.m),"ušetří "+f(iBank))+row("A1 – stejná doba, splátka "+f(p1),"ušetří "+f(res.base.I-res.A1.I))+row("Rozdíl jmění 2039: A2 vs. spořák","+"+f(dFull))+`<div class="tot" style="color:var(--ok)">+${f(dFull)}</div><div class="sub">o tolik budete v 2039 bohatší než při NESPLATIT (vč. spoření uvolněné splátky)</div>`;
+ window.__W={yLoss:Math.round(yLoss),mLoss:Math.round(yLoss/12),iBank:Math.round(iBank),iSav:Math.round(iSav),diff:Math.round(iBank-iSav),dFull:Math.round(dFull),a1:Math.round(res.base.I-res.A1.I)};
  window.__V=V.map(v=>[v.k,Math.round(v.g)]);}
 $("etf").addEventListener("input",upd);sel.addEventListener("change",upd);upd();
 </script></body></html>
