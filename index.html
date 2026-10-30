@@ -1,0 +1,102 @@
+<!DOCTYPE html><html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hypotéka – refixace 2027: studie</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--ink:#1c2333;--mut:#667085;--pri:#2563eb;--ok:#16a34a;--warn:#d97706;--bad:#dc2626}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+header{background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;padding:28px 18px}header h1{margin:0 0 6px;font-size:1.6rem}header p{margin:0;opacity:.9}
+main{max-width:1100px;margin:auto;padding:16px}
+.card{background:var(--card);border-radius:14px;padding:18px;margin:14px 0;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+h2{margin:0 0 12px;font-size:1.25rem}.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.kpi{background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:12px}.kpi b{display:block;font-size:1.25rem}.kpi span{color:var(--mut);font-size:.85rem}
+.badge{display:inline-block;font-size:.7rem;font-weight:700;padding:2px 7px;border-radius:99px;vertical-align:middle;margin-left:4px}
+.v{background:#dcfce7;color:#166534}.u{background:#fef3c7;color:#92400e}.c{background:#dbeafe;color:#1e40af}
+.ctrl{display:flex;flex-wrap:wrap;gap:18px;align-items:center}.ctrl label{font-weight:600}
+input[type=range]{width:220px;accent-color:var(--pri)}
+.seg button{border:1px solid #cbd5e1;background:#fff;padding:7px 12px;cursor:pointer;font-weight:600}.seg button:first-child{border-radius:8px 0 0 8px}.seg button:last-child{border-radius:0 8px 8px 0}.seg button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+select{padding:7px;border-radius:8px;border:1px solid #cbd5e1;font-size:1rem}
+table{width:100%;border-collapse:collapse;font-size:.92rem}th,td{padding:8px;border-bottom:1px solid #eef0f4;text-align:right}th:first-child,td:first-child{text-align:left}tbody tr:hover{background:#f1f5f9}tr.sel{background:#dbeafe!important}
+.tw{overflow-x:auto}.note{color:var(--mut);font-size:.85rem}.alert{border-left:4px solid var(--warn);background:#fffbeb;padding:10px 12px;border-radius:8px}
+.rec{border-left:4px solid var(--ok);background:#f0fdf4;padding:12px;border-radius:8px}
+.chartbox{position:relative;height:380px}@media(max-width:600px){.chartbox{height:300px}input[type=range]{width:100%}}
+</style></head><body>
+<header><h1>Hypotéka rodičů – co dělat při refixaci 18. 6. 2027</h1><p>Interaktivní studie: mimořádná splátka vs. spořicí účet vs. ETF, srovnání bank. <span class="badge v">OVĚŘENO</span> = z nabídky ČSOB / Hypoindexu, <span class="badge u">NEOVĚŘENO</span> = odhad, <span class="badge c">VYPOČTENO</span> = model.</p></header>
+<main>
+<section class="card"><h2>Výchozí data</h2><div class="grid">
+<div class="kpi"><span>Zůstatek k 18. 6. 2027 <i class="badge v">OVĚŘENO</i></span><b>2 118 601,20 Kč</b></div>
+<div class="kpi"><span>Splatnost <i class="badge v">OVĚŘENO</i></span><b>15. 7. 2039 (145 splátek)</b></div>
+<div class="kpi"><span>ČSOB nabídka – splátka <i class="badge v">OVĚŘENO</i></span><b style="font-size:1rem">1 r 5,29 % → 19 798,90<br>3 r 5,49 % → 20 013,80<br>5 r 5,69 % → 20 230,10</b></div>
+<div class="kpi"><span>Současná sazba / splátka <i class="badge u">NEOVĚŘENO</i></span><b>2 % / ~19 300 Kč</b></div>
+</div></section>
+
+<section class="card"><h2>Nastavení</h2><div class="ctrl">
+<div><label>Částka k dispozici: <span id="amtL"></span></label><br><input type="range" id="amt" min="500000" max="1500000" step="500000" value="1000000"><div class="note">500 tis. / 1 mil. / 1,5 mil.</div></div>
+<div><label>Sazba po refixaci</label><br><select id="rate"></select><div class="note">Předpoklad: sazba zůstane stejná i po konci fixace až do 2039.</div></div>
+<div><label>Výnos ETF: <span id="etfL"></span></label><br><input type="range" id="etf" min="3" max="10" step="0.5" value="7"><div class="note">p.a., před poplatky; po 3 letech osvobozeno od daně</div></div>
+<div><label>Spořicí účet</label><br><span>3,3 % hrubě → <b>2,8 % čistě</b> (daň 15 %)</span> <i class="badge v">OVĚŘENO</i></div>
+</div></section>
+
+<section class="card"><h2>A) Mimořádná splátka 18. 6. 2027 (bez poplatku)</h2>
+<div class="grid" id="kA"></div>
+<p class="note">Bez mimořádné splátky zaplatíte na úrocích <b id="baseI"></b> (splátka <b id="baseP"></b>). Varianta 1 = stejná splatnost, nižší splátka. Varianta 2 = stejná splátka, kratší doba.</p></section>
+
+<section class="card"><h2>B) Spořicí účet a C) ETF (hypotéka beze změny)</h2><div class="grid" id="kBC"></div>
+<p class="alert">⚠️ ETF: riziko propadu 30–50 % (např. 2008, 2020). Výnos není zaručen; pokud by propad přišel těsně před potřebou peněz, výsledek může být horší než mimořádná splátka. Zisk z ETF je po 3 letech držení osvobozen od daně.</p></section>
+
+<section class="card"><h2>Čisté jmění v čase (aktiva − dluh) <i class="badge c">VYPOČTENO</i></h2>
+<div class="chartbox"><canvas id="ch"></canvas></div>
+<p class="note">Model: všechny scénáře mají stejný měsíční rozpočet = splátka bez mimořádné splátky. Co se ušetří na splátce (A1) nebo po doplacení (A2), jde na spořicí účet 2,8 % čistě. Výnosy úročeny měsíčně ekvivalentem roční sazby. Sazba po fixaci beze změny.</p>
+<div class="grid" id="kNW"></div></section>
+
+<section class="card"><h2>Srovnání bank (Hypoindex.cz, 23. 10. 2026) <i class="badge v">OVĚŘENO</i></h2>
+<p class="note">Klikněte na řádek nebo buňku a sazba se použije ve výpočtech výše (refinancování může mít náklady – odhad ocenění, poplatky).</p>
+<div class="tw"><table><thead><tr><th>Banka</th><th>1 rok</th><th>3 roky</th><th>5 let</th><th>Poznámka</th></tr></thead><tbody id="banks"></tbody></table></div></section>
+
+<section class="card"><h2>Daňový odpočet úroků</h2>
+<p>Limit <b>300 000 Kč</b> ročně (bydlení pořízené před 2020) <i class="badge v">OVĚŘENO</i>. Úroky za rok cca <b>113 000 Kč</b> <i class="badge u">NEOVĚŘENO</i> → odpočet celé částky, úspora na dani ≈ 15 % = <b>~17 000 Kč/rok</b>. Mimořádná splátka úroky (a tedy i odpočet) snižuje – v 1. roce pro zvolenou částku cca <b id="taxL"></b> méně úspory na dani. Tento efekt modely výše nezahrnují.</p></section>
+
+<section class="card"><h2>Doporučení</h2><div class="rec">
+<ol><li><b>Mimořádně splatit ~1 mil. Kč</b> k 18. 6. 2027 (bez poplatku) – jistá úspora 370–608 tis. Kč na úrocích bez tržního rizika.</li>
+<li><b>Ponechat rezervu</b> (zbytek hotovosti na spořicím účtu, min. 6 měsíců výdajů).</li>
+<li><b>Vyjednat s ČSOB</b> sazbu ~<b>5,0 % na 3 roky</b> s argumentem nabídky Monety (4,69–4,99 %, ochota dorovnat nabídky). Pokud ČSOB nevyhoví, zvážit refinancování.</li>
+<li>Variantu ETF jen pro část peněz a jen při ochotě unést propad 30–50 %.</li></ol></div>
+<p class="note"><b>Upozornění:</b> Nejde o finanční poradenství. Jde o modelový výpočet s anuitní matematikou; skutečné splátky banky se mohou lišit o jednotky Kč (jiná konvence počtu dní). Před rozhodnutím ověřte podmínky s bankou.</p></section>
+</main>
+<script>
+const P0=2118601.20,N=145,START=new Date(2027,6,1);
+const BANKS=[["ČSOB (stávající)",5.29,5.49,5.69,"Nabídka k refixaci"],["Moneta",4.69,4.79,5.09,"Obrat 15 tis./měs.; refinancování akce 4,99 % na 3 r nad 1 mil.; dorovná nabídky"],["Fio",4.78,4.78,4.88,"Od 1,5 mil."],["Air Bank",null,5.19,5.29,""],["Česká spořitelna",5.39,5.39,5.59,""],["Raiffeisenbank",5.09,5.54,5.69,""],["UniCredit",null,5.39,5.79,""],["mBank",5.99,5.59,5.79,""],["Komerční banka",5.49,5.94,6.29,""],["Průměr Hypoindex",5.42,5.53,5.84,""]];
+const OFF={"5.29":19798.90,"5.49":20013.80,"5.69":20230.10};
+const f=x=>Math.round(x).toLocaleString("cs-CZ")+" Kč",$=id=>document.getElementById(id);
+const pay=(P,r,n)=>{const i=r/1200;return P*i/(1-Math.pow(1+i,-n))};
+const mon=k=>{const d=new Date(START);d.setMonth(d.getMonth()+k-1);return (d.getMonth()+1)+"/"+d.getFullYear()};
+const mrate=a=>Math.pow(1+a/100,1/12)-1;
+// rate select
+const sel=$("rate");let opts=[];BANKS.forEach((b,bi)=>[1,3,5].forEach((y,j)=>{if(b[j+1]!=null){opts.push([b[j+1],b[0]+" – "+y+(y==1?" rok":y==3?" roky":" let")+" – "+b[j+1].toFixed(2).replace(".",",")+" %"])}}));
+opts.forEach(([r,t])=>{const o=document.createElement("option");o.value=r;o.textContent=t;sel.appendChild(o)});sel.value="5.49";sel.selectedIndex=1;
+const tb=$("banks");BANKS.forEach(b=>{const tr=document.createElement("tr");tr.innerHTML=`<td>${b[0]}</td>`+[1,2,3].map(j=>`<td style="cursor:pointer" data-r="${b[j]}">${b[j]==null?"–":b[j].toFixed(2).replace(".",",")+" %"}</td>`).join("")+`<td style="text-align:left" class="note">${b[4]}</td>`;tb.appendChild(tr)});
+tb.addEventListener("click",e=>{const r=e.target.dataset.r;if(r&&r!="null"){const idx=opts.findIndex(o=>o[1].startsWith(e.target.parentNode.cells[0].textContent)&&o[0]==+r);sel.selectedIndex=idx;upd()}});
+function sim(r,X,etf){const i=r/1200,bp=pay(P0,r,N),sv=mrate(2.8),et=mrate(etf);
+ const res={base:{d:P0,a:X,I:0},A1:{d:P0-X,a:0,I:0},A2:{d:P0-X,a:0,I:0,m:0},B:{d:P0,a:X,I:0},C:{d:P0,a:X,I:0}};const p1=pay(P0-X,r,N);const s={A1:[],A2:[],B:[],C:[]};
+ const step=(o,p)=>{if(o.d<=0.005)return p;const it=o.d*i;o.I+=it;const pp=Math.min(p,o.d+it);o.d=o.d+it-pp;return p-pp};
+ for(let k=1;k<=N;k++){step(res.base,bp);step(res.B,bp);step(res.C,bp);
+  const l1=step(res.A1,p1);res.A1.a=res.A1.a*(1+sv)+(bp-p1);
+  const wasOpen=res.A2.d>0.005;const l2=step(res.A2,bp);if(wasOpen)res.A2.m=k;res.A2.a=res.A2.a*(1+sv)+l2;
+  res.B.a*=1+sv;res.C.a*=1+et;
+  for(const kk in s)s[kk].push(res[kk].a-Math.max(res[kk].d,0))}
+ return {res,s,bp,p1}}
+let chart;
+function upd(){const X=+$("amt").value,r=+sel.value,etf=+$("etf").value;$("amtL").textContent=f(X);$("etfL").textContent=etf.toLocaleString("cs-CZ")+" %";
+ const {res,s,bp,p1}=sim(r,X,etf);const off=OFF[r.toFixed(2)];
+ $("baseI").textContent=f(res.base.I);$("baseP").textContent=f(bp)+(off?` (banka uvádí ${off.toLocaleString("cs-CZ")} Kč)`:"");
+ const C=t=>`<i class="badge c">${t||"VYPOČTENO"}</i>`;
+ $("kA").innerHTML=`<div class="kpi"><span>V1: nová splátka ${C()}</span><b>${f(p1)}</b></div><div class="kpi"><span>V1: úroky celkem / úspora</span><b>${f(res.A1.I)}<br><span style="color:var(--ok)">úspora ${f(res.base.I-res.A1.I)}</span></b></div><div class="kpi"><span>V2: splaceno ${C()}</span><b>${mon(res.A2.m)} (${res.A2.m} splátek)</b></div><div class="kpi"><span>V2: úroky celkem / úspora</span><b>${f(res.A2.I)}<br><span style="color:var(--ok)">úspora ${f(res.base.I-res.A2.I)}</span></b></div>`;
+ const yrs=N/12,bN=X*(Math.pow(1.028,yrs)-1),cN=X*(Math.pow(1+etf/100,yrs)-1);
+ $("kBC").innerHTML=`<div class="kpi"><span>B) Čistý výnos spořicího účtu do 2039 ${C()}</span><b>${f(bN)}</b></div><div class="kpi"><span>B vs. úroky hypotéky (${r.toFixed(2).replace(".",",")} %)</span><b>${r>2.8?"Hypotéka stojí víc než spořák vynáší":"Spořák vynáší víc"}</b></div><div class="kpi"><span>C) Zisk ETF při ${etf} % do 2039 ${C()}</span><b>${f(cN)}</b></div><div class="kpi"><span>C) Zisk ETF při 3 / 7 / 10 %</span><b style="font-size:1rem">${[3,7,10].map(g=>f(X*(Math.pow(1+g/100,yrs)-1))).join(" / ")}</b></div>`;
+ const fin=k=>s[k][N-1];$("kNW").innerHTML=[["A1 – nižší splátka","A1"],["A2 – kratší doba","A2"],["B – spořicí účet","B"],["C – ETF "+etf+" %","C"]].map(([t,k])=>`<div class="kpi"><span>${t}: jmění 7/2039</span><b>${f(fin(k))}</b></div>`).join("");
+ $("taxL").textContent=f(0.15*X*r/100);
+ const labels=Array.from({length:N},(_,k)=>mon(k+1));
+ const ds=[["A1 Nižší splátka","A1","#16a34a"],["A2 Kratší doba","A2","#2563eb"],["B Spořicí účet","B","#d97706"],["C ETF","C","#9333ea"]].map(([l,k,c])=>({label:l,data:s[k],borderColor:c,backgroundColor:c,pointRadius:0,borderWidth:2.5,tension:.1}));
+ if(chart){chart.data.datasets=ds;chart.update()}else chart=new Chart($("ch"),{type:"line",data:{labels,datasets:ds},options:{maintainAspectRatio:false,interaction:{mode:"index",intersect:false},scales:{y:{ticks:{callback:v=>(v/1e6).toLocaleString("cs-CZ")+" mil."}},x:{ticks:{maxTicksLimit:13}}},plugins:{tooltip:{callbacks:{label:c=>c.dataset.label+": "+f(c.parsed.y)}}}}});
+ [...tb.rows].forEach(tr=>[1,2,3].forEach(j=>{tr.cells[j].style.background=(+tr.cells[j].dataset.r===r&&sel.options[sel.selectedIndex].text.startsWith(tr.cells[0].textContent))?"#bfdbfe":""}))}
+["amt","etf"].forEach(id=>$(id).addEventListener("input",upd));sel.addEventListener("change",upd);upd();
+</script></body></html>
